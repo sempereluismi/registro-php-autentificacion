@@ -1,0 +1,93 @@
+version: '3'
+
+services:
+  php8.2:
+    container_name: 'verificacion-php-8.2'
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "8000:80"
+    environment:
+      XDEBUG_CONFIG: remote_host=host.docker.internal remote_port=9003 remote_enable=1
+    volumes:
+      - ./app:/var/www/html
+      - ./config/php.ini:/usr/local/etc/php/php.ini
+    working_dir: /var/www/html
+
+    networks:
+      - dwcsLan
+      - dwcs
+
+  # php8.1:
+  #   container_name: 'dwcs-php-8.1'
+  #   build:
+  #     context: .
+  #     dockerfile: Dockerfile2
+  #   ports:
+  #     - "8001:80"
+  #   environment:
+  #     XDEBUG_CONFIG: remote_host=host.docker.internal remote_port=9003 remote_enable=1
+  #   volumes:
+  #     - ./app:/var/www/html
+  #     - ./config/php.ini:/usr/local/etc/php/php.ini
+  #   working_dir: /var/www/html
+
+  #   depends_on:
+  #     - php8.2
+
+  #   networks:
+  #     - dwcsLan
+  #     - dwcs
+
+  composer:
+    container_name: 'verificacion-mycomposer'
+    image: composer:2
+    volumes:
+      - ./app:/var/www/html
+    working_dir: /var/www/html
+    tty: true
+    command: '/bin/bash'
+
+    networks:
+      - dwcsLan
+      - dwcs
+
+  mariadb:
+    container_name: 'verificacion-mariadb'
+    image: mariadb:latest
+    ports:
+      - "3307:3306"
+    volumes:
+      - ./data:/var/lib/mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: usuarios
+      MYSQL_USER: test
+      MYSQL_PASSWORD: test
+
+    networks:
+      - dwcsLan
+      - dwcs
+
+  # phpmyadmin:
+  #   container_name: dwcs-phpmyadmin
+  #   image: phpmyadmin/phpmyadmin:latest
+  #   hostname: phpmyadmin
+  #   ports:
+  #     - "8002:80"
+  #   environment:
+  #     PMA_HOST: dwcs-mariadb
+  #     PMA_PORT: 3306 # Funciona con el puerto interno de los contenedores
+  #     MYSQL_ROOT_PASSWORD: root
+  #     MYSQL_DATABASE: dwcs
+
+  #   networks:
+  #     - dwcsLan
+  #     - dwcs
+
+networks:
+  dwcsLan:
+    internal: true
+  dwcs:
+    driver: bridge
